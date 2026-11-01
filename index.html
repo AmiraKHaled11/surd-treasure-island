@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Surd Treasure Island</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@600;800&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#1b2541;--gold:#f59f00;--ok:#2f9e44;--bad:#e03131}
+*{box-sizing:border-box}
+body{margin:0;font-family:Nunito,"Segoe UI",sans-serif;color:var(--ink);background:radial-gradient(circle at 20% 10%,#4dabf7,#1864ab 60%,#0b3d6b);min-height:100vh}
+h1,h2,h3{font-family:"Baloo 2",sans-serif;margin:0}
+.wrap{max-width:1200px;margin:0 auto;padding:14px}
+.top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;color:#fff}
+.top h1{font-size:clamp(26px,4.5vw,42px);flex:1;text-shadow:0 3px 0 #0003}
+.pill{background:#ffffffe6;color:var(--ink);border-radius:999px;padding:6px 16px;font-weight:800;font-size:18px}
+.game{display:grid;grid-template-columns:1.25fr 1fr;gap:16px;margin-top:12px}
+@media(max-width:920px){.game{grid-template-columns:1fr}}
+.mapbox{position:relative;border-radius:22px;overflow:hidden;box-shadow:0 12px 30px #0005;aspect-ratio:6/4;background:#1c7ed6}
+.mapbox svg{position:absolute;inset:0;width:100%;height:100%}
+.fog{position:absolute;inset:0;display:grid;grid-template-columns:repeat(6,1fr);grid-template-rows:repeat(4,1fr)}
+.tile{border:1px solid #ffffff30;background:radial-gradient(circle at 50% 40%,#e9ecef,#868e96);display:grid;place-items:center;cursor:pointer;transition:opacity .8s,transform .2s;font-family:"Baloo 2";font-weight:800;color:#343a40;font-size:clamp(11px,1.5vw,16px);text-align:center;line-height:1.1;padding:2px}
+.tile:hover{transform:scale(1.05);z-index:2;box-shadow:0 0 0 3px #ffd43b}
+.tile .ic{font-size:clamp(18px,2.6vw,30px);display:block}
+.tile.open{opacity:0;pointer-events:none}
+.tile.lost{background:repeating-linear-gradient(45deg,#495057,#495057 8px,#343a40 8px,#343a40 16px);color:#fff;cursor:default;font-size:clamp(18px,2.6vw,30px)}
+.tile.lost:hover{transform:none;box-shadow:none}
+.tile.cur{box-shadow:inset 0 0 0 4px #ffd43b}
+.legend{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.legend span{background:#ffffffd9;border-radius:999px;padding:3px 10px;font-weight:800;font-size:14px}
+.card{background:#fffdf5;border-radius:22px;padding:18px 20px;box-shadow:0 12px 30px #0004;border:4px solid #e9c46a}
+.skill{display:inline-block;border-radius:999px;color:#fff;padding:3px 14px;font-weight:800}
+.q{font-size:clamp(30px,4vw,40px);font-weight:800;text-align:center;margin:12px 0 16px;min-height:70px;display:flex;align-items:center;justify-content:center;flex-wrap:wrap}
+.ask{text-align:center;font-weight:800;font-size:18px;color:#555;margin-top:14px}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.opt{display:flex;align-items:center;gap:12px;border:3px solid #dee2e6;background:#fff;border-radius:18px;padding:10px 14px;font-size:26px;font-weight:800;cursor:pointer;color:var(--ink);min-height:76px;font-family:Nunito;text-align:left}
+.opt:hover{border-color:#adb5bd;transform:translateY(-2px)}
+.opt .L{flex:none;width:40px;height:40px;border-radius:12px;display:grid;place-items:center;color:#fff;font-family:"Baloo 2";font-size:22px}
+.opt:nth-child(1) .L{background:#f76707}.opt:nth-child(2) .L{background:#1c7ed6}.opt:nth-child(3) .L{background:#ae3ec9}.opt:nth-child(4) .L{background:#2f9e44}
+.opt.right{background:#ebfbee;border-color:var(--ok)}.opt.wrong{background:#fff5f5;border-color:var(--bad);animation:sh .4s}
+@keyframes sh{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.fb{margin-top:12px;border-radius:14px;padding:10px 14px;font-size:20px;display:none;line-height:2}
+.fb.ok{display:block;background:#ebfbee}.fb.bad{display:block;background:#fff5f5}
+.go{font-family:"Baloo 2";font-size:22px;font-weight:800;border:0;border-radius:16px;padding:10px 26px;cursor:pointer;background:var(--gold);color:#fff;box-shadow:0 4px 0 #c77700}
+.hint{color:#666;text-align:center;font-size:19px;margin:30px 0}
+.rad{display:inline-flex;align-items:stretch;white-space:nowrap}
+.rad .sym{font-size:1.1em;line-height:1}
+.rad .in{border-top:.08em solid currentColor;padding:0 .12em;margin-top:.13em}
+.fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 .15em;line-height:1.25}
+.fr>span:first-child{border-bottom:.07em solid currentColor;padding:0 .2em .05em}
+.fr>span:last-child{padding:.08em .2em 0}
+.splash{position:fixed;inset:0;background:#0b3d6bcc;display:grid;place-items:center;z-index:30;padding:16px}
+.splash .card{max-width:620px;text-align:center}
+.splash p{font-size:19px;line-height:1.6}
+.pop{position:fixed;font-family:"Baloo 2";font-weight:800;font-size:40px;color:#ffd43b;text-shadow:0 3px 0 #0006;pointer-events:none;animation:up 1.2s forwards;z-index:40}
+@keyframes up{to{transform:translateY(-80px);opacity:0}}
+#conf{position:fixed;inset:0;pointer-events:none;z-index:50}
+</style>
+</head>
+<body>
+<canvas id="conf"></canvas>
+<div class="wrap">
+<div class="top"><h1>&#x1F3DD;&#xFE0F; Surd Treasure Island</h1><span class="pill" id="hearts"></span><span class="pill" id="coins">&#x1FA99; 0</span><span class="pill" id="found">Map 0%</span></div>
+<div class="game">
+<div><div class="mapbox"><svg viewBox="0 0 600 400" preserveAspectRatio="none">
+<defs><radialGradient id="sea" cx=".5" cy=".5" r=".7"><stop offset="0" stop-color="#74c0fc"/><stop offset="1" stop-color="#1864ab"/></radialGradient></defs>
+<rect width="600" height="400" fill="url(#sea)"/>
+<g stroke="#ffffff70" stroke-width="2" fill="none"><path d="M30 60 q15 -8 30 0 q15 8 30 0"/><path d="M480 340 q15 -8 30 0 q15 8 30 0"/><path d="M500 60 q15 -8 30 0"/><path d="M60 330 q15 -8 30 0"/></g>
+<path d="M120 200 C110 110 210 60 300 75 C410 60 500 120 490 210 C500 300 400 345 300 330 C190 345 115 290 120 200Z" fill="#ffe8a3"/>
+<path d="M165 200 C160 135 230 105 300 112 C385 105 450 150 445 210 C450 275 380 300 300 295 C220 300 168 265 165 200Z" fill="#8ce99a"/>
+<path d="M220 170 l40 -55 l40 55z" fill="#868e96"/><path d="M248 132 l12 -17 l12 17z" fill="#fff"/>
+<g><rect x="372" y="150" width="7" height="45" fill="#8d5524"/><path d="M375 152 q-25 -12 -38 4 M375 152 q25 -12 38 4 M375 152 q-10 -22 -28 -18 M375 152 q12 -22 28 -18" stroke="#2b8a3e" stroke-width="8" fill="none" stroke-linecap="round"/></g>
+<g><rect x="190" y="230" width="7" height="40" fill="#8d5524"/><path d="M193 232 q-22 -10 -34 4 M193 232 q22 -10 34 4 M193 232 q-8 -20 -24 -16" stroke="#2b8a3e" stroke-width="8" fill="none" stroke-linecap="round"/></g>
+<path d="M230 260 q40 -20 70 0 t70 -10" stroke="#c92a2a" stroke-width="4" stroke-dasharray="8 8" fill="none"/>
+<g stroke="#c92a2a" stroke-width="9" stroke-linecap="round"><line x1="372" y1="235" x2="398" y2="261"/><line x1="398" y1="235" x2="372" y2="261"/></g>
+<g transform="translate(400 268)"><rect x="0" y="0" width="56" height="38" rx="6" fill="#8d5524" stroke="#5c3a1e" stroke-width="3"/><path d="M0 12 h56" stroke="#f59f00" stroke-width="5"/><rect x="23" y="8" width="10" height="12" fill="#ffd43b"/><circle cx="12" cy="-4" r="7" fill="#ffd43b"/><circle cx="28" cy="-7" r="7" fill="#fcc419"/><circle cx="44" cy="-4" r="7" fill="#ffd43b"/></g>
+<g transform="translate(70 120)"><path d="M0 30 h60 l-10 18 h-40z" fill="#8d5524"/><rect x="28" y="-10" width="4" height="40" fill="#5c3a1e"/><path d="M32 -8 l24 16 l-24 10z" fill="#fff"/></g>
+<text x="300" y="382" text-anchor="middle" font-family="Baloo 2,sans-serif" font-weight="800" font-size="26" fill="#fff">You found the surd treasure!</text>
+</svg><div class="fog" id="fog"></div></div>
+<div class="legend" id="legend"></div></div>
+<div class="card" id="panel"></div>
+</div>
+</div>
+<div class="splash" id="splash"><div class="card"><h2 style="font-size:36px">&#x1F3F4;&#x200D;&#x2620;&#xFE0F; Surd Treasure Island</h2>
+<p>The island is hidden under fog. Each of the <b>24 squares</b> hides a surd question.<br>Answer correctly to clear the fog and collect coins.<br>
+Some squares hide a <b>&#x1F48E; gem (double coins)</b>. Some hide a <b>&#x26C8;&#xFE0F; storm</b>: a wrong answer there costs 2 hearts!<br>You have <b>5 hearts</b>. Clear the whole map to find the treasure chest.</p>
+<button class="go" id="start">Set sail &#x26F5;</button></div></div>
+<script>
+const BANK=[{"s": "Multiply / Divide", "q": "√2 × √8", "o": ["4", "√10", "16", "2√2"], "e": "√2 × √8 = √16 = 4", "ok": true}, {"s": "Multiply / Divide", "q": "√3 × √12", "o": ["6", "√15", "36", "3√3"], "e": "√3 × √12 = √36 = 6", "ok": true}, {"s": "Multiply / Divide", "q": "2√3 × 4√5", "o": ["8√15", "6√15", "8√8", "6√8"], "e": "Multiply the numbers 2 × 4 = 8 and the roots √3 × √5 = √15", "ok": true}, {"s": "Multiply / Divide", "q": "√45 ÷ √5", "o": ["3", "√40", "9", "5"], "e": "√45 ÷ √5 = √9 = 3", "ok": true}, {"s": "Multiply / Divide", "q": "√72 ÷ √2", "o": ["6", "√70", "36", "3"], "e": "√72 ÷ √2 = √36 = 6", "ok": true}, {"s": "Multiply / Divide", "q": "3√10 × 2√10", "o": ["60", "6√10", "30", "120"], "e": "3 × 2 = 6 and √10 × √10 = 10, so 6 × 10 = 60", "ok": true}, {"s": "Simplify", "q": "√12", "o": ["2√3", "3√2", "6", "4√3"], "e": "√12 = √4 × √3 = 2√3", "ok": true}, {"s": "Simplify", "q": "√50", "o": ["5√2", "25√2", "10√5", "2√5"], "e": "√50 = √25 × √2 = 5√2", "ok": true}, {"s": "Simplify", "q": "√75", "o": ["5√3", "3√5", "25√3", "15√5"], "e": "√75 = √25 × √3 = 5√3", "ok": true}, {"s": "Simplify", "q": "√98", "o": ["7√2", "49√2", "14√7", "2√7"], "e": "√98 = √49 × √2 = 7√2", "ok": true}, {"s": "Simplify", "q": "3√8", "o": ["6√2", "12√2", "9√2", "6√8"], "e": "3√8 = 3 × 2√2 = 6√2", "ok": true}, {"s": "Simplify", "q": "√180", "o": ["6√5", "5√6", "18√5", "9√20"], "e": "√180 = √36 × √5 = 6√5", "ok": true}, {"s": "Like surds", "q": "3√2 + 5√2", "o": ["8√2", "8√4", "15√2", "8"], "e": "Add the numbers: 3 + 5 = 8, keep √2", "ok": true}, {"s": "Like surds", "q": "7√5 − 2√5", "o": ["5√5", "5", "9√5", "14√5"], "e": "Subtract the numbers: 7 − 2 = 5, keep √5", "ok": true}, {"s": "Like surds", "q": "√8 + √18", "o": ["5√2", "√26", "6√2", "13√2"], "e": "√8 = 2√2 and √18 = 3√2, so 2√2 + 3√2 = 5√2", "ok": true}, {"s": "Like surds", "q": "√27 − √12", "o": ["√3", "√15", "3√3", "15"], "e": "√27 = 3√3 and √12 = 2√3, so 3√3 − 2√3 = √3", "ok": true}, {"s": "Like surds", "q": "2√12 + √48", "o": ["8√3", "8√15", "6√3", "3√60"], "e": "2√12 = 4√3 and √48 = 4√3, so 4√3 + 4√3 = 8√3", "ok": true}, {"s": "Like surds", "q": "√20 + √45 − √5", "o": ["4√5", "6√5", "√60", "4√20"], "e": "2√5 + 3√5 − √5 = 4√5", "ok": true}, {"s": "Expand", "q": "(2 + √3)(1 + √3)", "o": ["5 + 3√3", "5 + 2√3", "2 + 3√3", "5 + √3"], "e": "2 + 2√3 + √3 + 3 = 5 + 3√3", "ok": true}, {"s": "Expand", "q": "(3 + √5)(2 − √5)", "o": ["1 − √5", "1 + √5", "11 − √5", "1 − 5√5"], "e": "6 − 3√5 + 2√5 − 5 = 1 − √5", "ok": true}, {"s": "Expand", "q": "(√3 + √2)²", "o": ["5 + 2√6", "5", "5 + √6", "1 + 2√6"], "e": "3 + 2√6 + 2 = 5 + 2√6", "ok": true}, {"s": "Expand", "q": "(4 − √3)²", "o": ["19 − 8√3", "19 + 8√3", "13 − 8√3", "19 − 4√3"], "e": "16 − 8√3 + 3 = 19 − 8√3", "ok": true}, {"s": "Expand", "q": "√2(3 + √8)", "o": ["4 + 3√2", "3√2 + √10", "5√2", "3 + 4√2"], "e": "3√2 + √16 = 3√2 + 4", "ok": true}, {"s": "Expand", "q": "(1 + √2)(3 + 2√2)", "o": ["7 + 5√2", "3 + 5√2", "7 + 6√2", "5 + 5√2"], "e": "3 + 2√2 + 3√2 + 4 = 7 + 5√2", "ok": true}, {"s": "Rationalise", "q": "6 over √3", "o": ["2√3", "√3", "6√3", "3√2"], "e": "Multiply top and bottom by √3: 6√3 over 3 = 2√3", "ok": true}, {"s": "Rationalise", "q": "10 over √5", "o": ["2√5", "5√2", "10√5", "√5"], "e": "10√5 over 5 = 2√5", "ok": true}, {"s": "Rationalise", "q": "4 over √2", "o": ["2√2", "4√2", "√2", "2"], "e": "4√2 over 2 = 2√2", "ok": true}, {"s": "Rationalise", "q": "3 over 2√3", "o": ["√3 over 2", "3√3 over 2", "√3 over 6", "3 over 2"], "e": "3√3 over 2√3 × √3 = 3√3 over 6 = √3 over 2", "ok": true}, {"s": "Rationalise", "q": "5 over √10", "o": ["√10 over 2", "5√10", "√10 over 5", "√10 over 10"], "e": "5√10 over 10 = √10 over 2", "ok": true}, {"s": "Rationalise", "q": "12 over 3√2", "o": ["2√2", "4√2", "√2", "6√2"], "e": "4 over √2 = 4√2 over 2 = 2√2", "ok": true}, {"s": "Conjugate", "q": "(3 + √2)(3 − √2)", "o": ["7", "11", "9", "5"], "e": "9 − 2 = 7 (the middle terms cancel)", "ok": true}, {"s": "Conjugate", "q": "(√7 + 2)(√7 − 2)", "o": ["3", "11", "9", "5"], "e": "7 − 4 = 3", "ok": true}, {"s": "Conjugate", "q": "1 over (1 + √2)", "o": ["√2 − 1", "√2 + 1", "1 − √2", "1 over 3"], "e": "Multiply by (1 − √2): (1 − √2) over (1 − 2) = √2 − 1", "ok": true}, {"s": "Conjugate", "q": "2 over (3 − √5)", "o": ["(3 + √5) over 2", "(3 − √5) over 2", "3 + √5", "(3 + √5) over 4"], "e": "2(3 + √5) over (9 − 5) = (3 + √5) over 2", "ok": true}, {"s": "Conjugate", "q": "4 over (√5 − 1)", "o": ["√5 + 1", "√5 − 1", "4(√5 + 1)", "(√5 + 1) over 2"], "e": "4(√5 + 1) over (5 − 1) = √5 + 1", "ok": true}, {"s": "Conjugate", "q": "6 over (√7 + 1)", "o": ["√7 − 1", "√7 + 1", "6(√7 − 1)", "(√7 − 1) over 2"], "e": "6(√7 − 1) over (7 − 1) = √7 − 1", "ok": true}];
+const SK={"Multiply / Divide":["#e8590c","&#x2716;&#xFE0F;","Multiply"],"Simplify":["#1c7ed6","&#x2702;&#xFE0F;","Simplify"],"Like surds":["#2f9e44","&#x2795;","Like surds"],
+ "Expand":["#ae3ec9","&#x1F4E6;","Expand"],"Rationalise":["#f08c00","&#x1F527;","Rationalise"],"Conjugate":["#c2255c","&#x1F517;","Conjugate"]};
+const $=id=>document.getElementById(id);
+function rad(s){return s.replace(/√(\d+)/g,(m,a)=>`<span class="rad"><span class="sym">√</span><span class="in">${a}</span></span>`)}
+function strip(s){s=s.trim();return /^\(.*\)$/.test(s)&&s.slice(1,-1).indexOf(')')<0?s.slice(1,-1):s}
+function tex(s){if(s.includes(' over ')){const [a,b]=s.split(' over ');return `<span class="fr"><span>${rad(strip(a))}</span><span>${rad(strip(b))}</span></span>`}return rad(s)}
+// explanations: turn every "A over B" piece (A, B = a term or a bracket) into a stacked fraction
+const TERM='(?:[\\d√]*\\([^)]*\\)|[\\d√]+)';
+function texLine(s){return s.replace(new RegExp(TERM+' over (?:'+TERM+'(?: × √\\d+)?)','g'),m=>'\u0001'+m+'\u0002').split(/(\u0001[^\u0002]*\u0002)/).map(p=>p[0]=='\u0001'?tex(p.slice(1,-1).replace(/ × (√\d+)$/,'$1')):rad(p)).join('')}
+let AC;function beep(f,d=.12,t='sine'){try{AC=AC||new AudioContext();const o=AC.createOscillator(),g=AC.createGain();o.type=t;o.frequency.value=f;g.gain.value=.12;o.connect(g);g.connect(AC.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+d);o.stop(AC.currentTime+d)}catch(e){}}
+const yay=()=>{beep(660);setTimeout(()=>beep(880),100);setTimeout(()=>beep(1175,.25),200)},nope=()=>{beep(220,.2,'square');setTimeout(()=>beep(160,.3,'square'),150)};
+const shuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const HINT='<div class="hint">&#x1F446; Tap any foggy square on the map to explore it.<br><br>Answer correctly to clear the fog and collect the treasure underneath!</div>';
+let T,hearts,coins,cur,lock,over;
+function newGame(){hearts=5;coins=0;cur=-1;lock=true;over=false;
+ const by={};BANK.forEach(q=>(by[q.s]=by[q.s]||[]).push(q));
+ let qs=[];Object.values(by).forEach(l=>qs.push(...shuf(l).slice(0,4)));qs=shuf(qs);
+ const sp=shuf([...Array(24).keys()]);
+ T=qs.map((q,i)=>({q,state:'fog',type:sp.indexOf(i)<3?'gem':sp.indexOf(i)<6?'storm':'coin',val:[10,20,30,40,50][Math.floor(Math.random()*5)],order:shuf([0,1,2,3])}));
+ $('legend').innerHTML=Object.entries(SK).map(([k,v])=>`<span style="color:${v[0]}">${v[1]} ${v[2]}</span>`).join('');
+ draw();$('panel').innerHTML=HINT}
+function draw(){$('fog').innerHTML=T.map((t,i)=>`<div class="tile ${t.state=='open'?'open':t.state=='lost'?'lost':''} ${i==cur?'cur':''}" data-i="${i}">${t.state=='lost'?'&#x1F480;':`<span><span class="ic">${SK[t.q.s][1]}</span>${SK[t.q.s][2]}</span>`}</div>`).join('');
+ $('hearts').innerHTML='&#x2764;&#xFE0F;'.repeat(hearts)+'&#x1F5A4;'.repeat(5-hearts);$('coins').innerHTML='&#x1FA99; '+coins;
+ $('found').textContent='Map '+Math.round(T.filter(t=>t.state=='open').length/24*100)+'%'}
+$('fog').onclick=e=>{const d=e.target.closest('.tile');if(!d||over)return;const i=+d.dataset.i;if(T[i].state!='fog')return;open(i)};
+function open(i){cur=i;lock=false;const t=T[i],q=t.q,c=SK[q.s];draw();beep(500,.08);
+ $('panel').innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><span class="skill" style="background:${c[0]}">${c[1]} ${q.s}</span>
+ ${t.type=='gem'?'<b style="color:#ae3ec9">&#x1F48E; Gem square: double coins!</b>':t.type=='storm'?'<b style="color:#c92a2a">&#x26C8;&#xFE0F; Storm: wrong = lose 2 hearts</b>':`<b style="color:#e67700">&#x1FA99; ${t.val} coins</b>`}</div>
+ <div class="ask">${q.s=='Rationalise'?'Rationalise the denominator:':q.s=='Simplify'?'Simplify:':q.s=='Expand'?'Expand and simplify:':'Work out and simplify:'}</div>
+ <div class="q">${tex(q.q)}</div><div class="opts" id="opts">${t.order.map((k,n)=>`<button class="opt" data-k="${k}"><span class="L">${'ABCD'[n]}</span>${tex(q.o[k])}</button>`).join('')}</div><div class="fb" id="fb"></div>`;
+ $('opts').onclick=ev=>{const b=ev.target.closest('.opt');if(b)answer(+b.dataset.k,b)};
+ if(innerWidth<920)$('panel').scrollIntoView({behavior:'smooth'})}
+function answer(k,btn){if(lock)return;lock=true;const t=T[cur],ok=k===0;
+ [...$('opts').children].forEach(b=>{if(+b.dataset.k===0)b.classList.add('right')});
+ if(ok){const g=t.type=='gem'?t.val*2:t.type=='storm'?60:t.val;coins+=g;t.state='open';yay();
+  const r=btn.getBoundingClientRect(),p=document.createElement('div');p.className='pop';p.textContent='+'+g+' \u{1FA99}';p.style.left=r.left+30+'px';p.style.top=r.top+'px';document.body.appendChild(p);setTimeout(()=>p.remove(),1200)}
+ else{btn.classList.add('wrong');hearts=Math.max(0,hearts-(t.type=='storm'?2:1));t.state='lost';nope()}
+ $('fb').className='fb '+(ok?'ok':'bad');$('fb').innerHTML=(ok?'&#x2705; Treasure found! ':'&#x274C; The fog wins this square. ')+texLine(t.q.e);
+ cur=-1;draw();if(hearts<=0||!T.some(x=>x.state=='fog')){over=true;setTimeout(end,2200)}}
+function end(){const n=T.filter(t=>t.state=='open').length,pct=Math.round(n/24*100),won=n==24;
+ $('panel').innerHTML=`<div style="text-align:center"><h2 style="font-size:34px">${won?'&#x1F3C6; You found ALL the treasure!':hearts>0?'&#x1F3DD;&#xFE0F; Voyage complete!':'&#x1F30A; Shipwrecked!'}</h2>
+ <p style="font-size:24px">&#x1FA99; <b>${coins}</b> coins &nbsp;&middot;&nbsp; <b>${n}</b> / 24 squares (${pct}%)</p>
+ <p style="font-size:19px">${pct>=80?'Excellent surd sailor!':pct>=50?'Good voyage! Sail again for the full map.':'Read the explanations, then sail again.'}</p>
+ <button class="go" id="again">Sail again</button></div>`;$('again').onclick=newGame;if(pct>=70)confetti()}
+$('start').onclick=()=>{$('splash').remove();beep(523);newGame()};
+function confetti(){const c=$('conf'),x=c.getContext('2d');c.width=innerWidth;c.height=innerHeight;
+ const P=Array.from({length:170},()=>({x:Math.random()*c.width,y:-20-Math.random()*c.height*.5,v:2+Math.random()*4,r:5+Math.random()*7,h:40+Math.random()*30,s:Math.random()*6}));let t=0;
+ (function f(){x.clearRect(0,0,c.width,c.height);P.forEach(p=>{p.y+=p.v;p.x+=Math.sin((t+p.s)/12)*1.5;x.fillStyle=`hsl(${p.h},95%,55%)`;x.beginPath();x.arc(p.x,p.y,p.r/2,0,7);x.fill()});
+  if(++t<240)requestAnimationFrame(f);else x.clearRect(0,0,c.width,c.height)})()}
+</script>
+</body>
+</html>
