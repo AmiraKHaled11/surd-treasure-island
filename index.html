@@ -43,9 +43,9 @@ h1,h2,h3{font-family:"Baloo 2",sans-serif;margin:0}
 .fb.ok{display:block;background:#ebfbee}.fb.bad{display:block;background:#fff5f5}
 .go{font-family:"Baloo 2";font-size:22px;font-weight:800;border:0;border-radius:16px;padding:10px 26px;cursor:pointer;background:var(--gold);color:#fff;box-shadow:0 4px 0 #c77700}
 .hint{color:#666;text-align:center;font-size:19px;margin:30px 0}
-.rad{display:inline-flex;align-items:stretch;white-space:nowrap}
-.rad .sym{font-size:1.1em;line-height:1}
-.rad .in{border-top:.08em solid currentColor;padding:0 .12em;margin-top:.13em}
+.rad{display:inline-block;white-space:nowrap;line-height:1.15;vertical-align:baseline}
+.rad .sym{display:inline-block;font-size:1.05em;margin-right:-.06em;vertical-align:baseline}
+.rad .in{display:inline-block;border-top:.08em solid currentColor;padding:.04em .1em 0;line-height:1.05;vertical-align:baseline}
 .fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 .15em;line-height:1.25}
 .fr>span:first-child{border-bottom:.07em solid currentColor;padding:0 .2em .05em}
 .fr>span:last-child{padding:.08em .2em 0}
@@ -55,6 +55,10 @@ h1,h2,h3{font-family:"Baloo 2",sans-serif;margin:0}
 .pop{position:fixed;font-family:"Baloo 2";font-weight:800;font-size:40px;color:#ffd43b;text-shadow:0 3px 0 #0006;pointer-events:none;animation:up 1.2s forwards;z-index:40}
 @keyframes up{to{transform:translateY(-80px);opacity:0}}
 #conf{position:fixed;inset:0;pointer-events:none;z-index:50}
+.fr>span,.opt,.q{white-space:nowrap}
+.fb .ln{display:block}
+.long .q{font-size:28px}.long .opt{font-size:21px}
+@media(max-width:600px){.opts{grid-template-columns:1fr;gap:9px}.opt{font-size:24px;min-height:62px;padding:8px 12px}.q{font-size:32px;margin:8px 0 12px}.fb{font-size:18px}.card{padding:14px}.long .q{font-size:24px}.long .opt{font-size:19px;min-height:54px}.long .fb{font-size:16px}}
 </style>
 </head>
 <body>
@@ -95,7 +99,8 @@ function strip(s){s=s.trim();return /^\(.*\)$/.test(s)&&s.slice(1,-1).indexOf(')
 function tex(s){if(s.includes(' over ')){const [a,b]=s.split(' over ');return `<span class="fr"><span>${rad(strip(a))}</span><span>${rad(strip(b))}</span></span>`}return rad(s)}
 // explanations: turn every "A over B" piece (A, B = a term or a bracket) into a stacked fraction
 const TERM='(?:[\\d√]*\\([^)]*\\)|[\\d√]+)';
-function texLine(s){return s.replace(new RegExp(TERM+' over (?:'+TERM+'(?: × √\\d+)?)','g'),m=>'\u0001'+m+'\u0002').split(/(\u0001[^\u0002]*\u0002)/).map(p=>p[0]=='\u0001'?tex(p.slice(1,-1).replace(/ × (√\d+)$/,'$1')):rad(p)).join('')}
+function texLine(s){return s.split(/: |, so | and (?=√)|, then /).map(p=>'<span class="ln">'+texPart(p)+'</span>').join('')}
+function texPart(s){return s.replace(new RegExp(TERM+' over (?:'+TERM+'(?: × √\\d+)?)','g'),m=>'\u0001'+m+'\u0002').split(/(\u0001[^\u0002]*\u0002)/).map(p=>p[0]=='\u0001'?tex(p.slice(1,-1).replace(/ × (√\d+)$/,'$1')):rad(p)).join('')}
 let AC;function beep(f,d=.12,t='sine'){try{AC=AC||new AudioContext();const o=AC.createOscillator(),g=AC.createGain();o.type=t;o.frequency.value=f;g.gain.value=.12;o.connect(g);g.connect(AC.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+d);o.stop(AC.currentTime+d)}catch(e){}}
 const yay=()=>{beep(660);setTimeout(()=>beep(880),100);setTimeout(()=>beep(1175,.25),200)},nope=()=>{beep(220,.2,'square');setTimeout(()=>beep(160,.3,'square'),150)};
 const shuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
@@ -112,11 +117,11 @@ function draw(){$('fog').innerHTML=T.map((t,i)=>`<div class="tile ${t.state=='op
  $('hearts').innerHTML='&#x2764;&#xFE0F;'.repeat(hearts)+'&#x1F5A4;'.repeat(5-hearts);$('coins').innerHTML='&#x1FA99; '+coins;
  $('found').textContent='Map '+Math.round(T.filter(t=>t.state=='open').length/24*100)+'%'}
 $('fog').onclick=e=>{const d=e.target.closest('.tile');if(!d||over)return;const i=+d.dataset.i;if(T[i].state!='fog')return;open(i)};
-function open(i){cur=i;lock=false;const t=T[i],q=t.q,c=SK[q.s];draw();beep(500,.08);
+function open(i){cur=i;lock=false;const t=T[i],q=t.q,c=SK[q.s];$('panel').classList.toggle('long',q.s=='Expand'||q.s=='Conjugate');draw();beep(500,.08);
  $('panel').innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><span class="skill" style="background:${c[0]}">${c[1]} ${q.s}</span>
  ${t.type=='gem'?'<b style="color:#ae3ec9">&#x1F48E; Gem square: double coins!</b>':t.type=='storm'?'<b style="color:#c92a2a">&#x26C8;&#xFE0F; Storm: wrong = lose 2 hearts</b>':`<b style="color:#e67700">&#x1FA99; ${t.val} coins</b>`}</div>
  <div class="ask">${q.s=='Rationalise'?'Rationalise the denominator:':q.s=='Simplify'?'Simplify:':q.s=='Expand'?'Expand and simplify:':'Work out and simplify:'}</div>
- <div class="q">${tex(q.q)}</div><div class="opts" id="opts">${t.order.map((k,n)=>`<button class="opt" data-k="${k}"><span class="L">${'ABCD'[n]}</span>${tex(q.o[k])}</button>`).join('')}</div><div class="fb" id="fb"></div>`;
+ <div class="q"><span>${tex(q.q)}</span></div><div class="opts" id="opts">${t.order.map((k,n)=>`<button class="opt" data-k="${k}"><span class="L">${'ABCD'[n]}</span><span>${tex(q.o[k])}</span></button>`).join('')}</div><div class="fb" id="fb"></div>`;
  $('opts').onclick=ev=>{const b=ev.target.closest('.opt');if(b)answer(+b.dataset.k,b)};
  if(innerWidth<920)$('panel').scrollIntoView({behavior:'smooth'})}
 function answer(k,btn){if(lock)return;lock=true;const t=T[cur],ok=k===0;
@@ -126,7 +131,7 @@ function answer(k,btn){if(lock)return;lock=true;const t=T[cur],ok=k===0;
  else{btn.classList.add('wrong');hearts=Math.max(0,hearts-(t.type=='storm'?2:1));t.state='lost';nope()}
  $('fb').className='fb '+(ok?'ok':'bad');$('fb').innerHTML=(ok?'&#x2705; Treasure found! ':'&#x274C; The fog wins this square. ')+texLine(t.q.e);
  cur=-1;draw();if(hearts<=0||!T.some(x=>x.state=='fog')){over=true;setTimeout(end,2200)}}
-function end(){const n=T.filter(t=>t.state=='open').length,pct=Math.round(n/24*100),won=n==24;
+function end(){$('panel').classList.remove('long');const n=T.filter(t=>t.state=='open').length,pct=Math.round(n/24*100),won=n==24;
  $('panel').innerHTML=`<div style="text-align:center"><h2 style="font-size:34px">${won?'&#x1F3C6; You found ALL the treasure!':hearts>0?'&#x1F3DD;&#xFE0F; Voyage complete!':'&#x1F30A; Shipwrecked!'}</h2>
  <p style="font-size:24px">&#x1FA99; <b>${coins}</b> coins &nbsp;&middot;&nbsp; <b>${n}</b> / 24 squares (${pct}%)</p>
  <p style="font-size:19px">${pct>=80?'Excellent surd sailor!':pct>=50?'Good voyage! Sail again for the full map.':'Read the explanations, then sail again.'}</p>
